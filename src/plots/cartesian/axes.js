@@ -1662,6 +1662,13 @@ axes.drawOne = function(gd, ax, opts) {
 
     ax.setScale();
 
+        console.log(
+            'drawOne',
+            gd._fullLayout.xaxis.range,
+            gd._fullLayout.xaxis2.range,
+            gd._fullLayout.xaxis3.range
+        )
+
     var fullLayout = gd._fullLayout;
     var axId = ax._id;
     var axLetter = axId.charAt(0);

@@ -697,14 +697,28 @@ exports.redrawReglTraces = function(gd) {
 };
 
 exports.doAutoRangeAndConstraints = function(gd) {
+    var fullLayout = gd._fullLayout;
     var axList = Axes.list(gd, '', true);
+    var i, ax;
 
-    for(var i = 0; i < axList.length; i++) {
-        var ax = axList[i];
+    for(i = 0; i < axList.length; i++) {
+        ax = axList[i];
         cleanAxisConstraints(gd, ax);
+
         // in case margins changed, update scale
         ax.setScale();
         doAutoRange(gd, ax);
+    }
+
+    for(i = 0; i < axList.length; i++) {
+        ax = axList[i];
+
+        if(ax.matches) {
+            var matchingAx = fullLayout[Axes.id2name(ax.matches)];
+            ax.range = matchingAx.range.slice();
+            ax.setScale();
+            console.log(ax._id, ax.matches, ax.range)
+        }
     }
 
     enforceAxisConstraints(gd);

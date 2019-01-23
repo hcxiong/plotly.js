@@ -1948,6 +1948,10 @@ function axRangeSupplyDefaultsByPass(gd, flags, specs) {
         axOut.range = axIn.range.slice();
         axOut.cleanRange();
     }
+
+    // no need to consider matching axes here,
+    // if we keep block in doAutoRangeAndConstraints
+
     return true;
 }
 
@@ -1957,14 +1961,26 @@ function addAxRangeSequence(seq, rangesAltered) {
     // executed after drawData
     var drawAxes = rangesAltered ?
         function(gd) {
-            var opts = {skipTitle: true};
+            var fullLayout = gd._fullLayout;
+            var axIds = [];
+            var skipTitle = true;
+
             for(var id in rangesAltered) {
-                if(Axes.getFromId(gd, id).automargin) {
-                    opts = {};
-                    break;
+                var ax = Axes.getFromId(gd, id);
+
+                axIds.push(id);
+                if(ax._matchingAxes) {
+                    for(var i = 0; i < ax._matchingAxes.length; i++) {
+                        axIds.push(Axes.name2id(ax._matchingAxes[i]));
+                    }
+                }
+
+                if(ax.automargin) {
+                    skipTitle = false;
                 }
             }
-            return Axes.draw(gd, Object.keys(rangesAltered), opts);
+
+            return Axes.draw(gd, axIds, {skipTitle: skipTitle});
         } :
         function(gd) {
             return Axes.draw(gd, 'redraw');

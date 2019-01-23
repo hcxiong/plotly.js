@@ -390,6 +390,12 @@ module.exports = function setConvert(ax, fullLayout) {
         // make sure we don't later mutate the defaults
         dflt = dflt.slice();
 
+        // TODO handle matching axis range here?
+        if(ax.matches) {
+            var matchingAx = fullLayout[axisIds.id2name(ax.matches)];
+            Lib.nestedProperty(ax, rangeAttr).set(matchingAx.range.slice());
+        }
+
         if(!range || range.length !== 2) {
             Lib.nestedProperty(ax, rangeAttr).set(dflt);
             return;

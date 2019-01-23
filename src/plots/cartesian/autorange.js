@@ -205,17 +205,19 @@ function makePadFn(ax) {
 }
 
 function concatExtremes(gd, ax) {
-    var axId = ax._id;
     var fullData = gd._fullData;
     var fullLayout = gd._fullLayout;
     var minArray = [];
     var maxArray = [];
     var i, j, d;
 
-    function _concat(cont, indices) {
+    function _concat(ax2, cont, indices) {
+        var axId = ax2._id;
+
         for(i = 0; i < indices.length; i++) {
             var item = cont[indices[i]];
             var extremes = (item._extremes || {})[axId];
+
             if(item.visible === true && extremes) {
                 for(j = 0; j < extremes.min.length; j++) {
                     d = extremes.min[j];
@@ -229,15 +231,30 @@ function concatExtremes(gd, ax) {
         }
     }
 
-    _concat(fullData, ax._traceIndices);
-    _concat(fullLayout.annotations || [], ax._annIndices || []);
-    _concat(fullLayout.shapes || [], ax._shapeIndices || []);
+    function concatOneAx(ax2) {
+        _concat(ax2, fullData, ax2._traceIndices);
+        _concat(ax2, fullLayout.annotations || [], ax2._annIndices || []);
+        _concat(ax2, fullLayout.shapes || [], ax2._shapeIndices || []);
+    }
+
+    concatOneAx(ax);
+
+    var matchingAxes = ax._matchingAxes || [];
+    for(var k = 0; k < matchingAxes.length; k++) {
+        concatOneAx(fullLayout[matchingAxes[k]]);
+    }
 
     return {min: minArray, max: maxArray};
 }
 
 function doAutoRange(gd, ax) {
-    if(ax.autorange) {
+
+    // This is going to be a bit more complicated than just throwing all of that
+    // data into the autorange calculation though, because two axes should be able
+    // to match range without matching _length - particularly useful for x matching
+    // y without forcing the plot to be square.
+
+    if(ax.autorange && !ax.matches) {
         ax.range = getAutoRange(gd, ax);
 
         ax._r = ax.range.slice();
@@ -264,6 +281,7 @@ function doAutoRange(gd, ax) {
         var axeRangeOpts = anchorAx.rangeslider[ax._name];
         if(axeRangeOpts) {
             if(axeRangeOpts.rangemode === 'auto') {
+                // TODO?
                 axeRangeOpts.range = getAutoRange(gd, ax);
             }
         }

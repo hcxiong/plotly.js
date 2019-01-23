@@ -211,6 +211,19 @@ module.exports = {
             'and *right* for x axes, and *top*, *middle* (default), and *bottom* for y axes.'
         ].join(' ')
     },
+    matches: {
+        valType: 'enumerated',
+        values: [
+            constants.idRegex.x.toString(),
+            constants.idRegex.y.toString()
+        ],
+        role: 'info',
+        editType: 'calc',
+        description: [
+            '...',
+            '!!!'
+        ].join(' ')
+    },
     // ticks
     tickmode: {
         valType: 'enumerated',

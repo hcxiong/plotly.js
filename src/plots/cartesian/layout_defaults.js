@@ -140,6 +140,9 @@ module.exports = function supplyLayoutDefaults(layoutIn, layoutOut, fullData) {
         return out;
     }
 
+    var axisMatchGroups = layoutOut._axisMatchGroups = [];
+    var existingMatches = {};
+
     // first pass creates the containers, determines types, and handles most of the settings
     for(i = 0; i < axNames.length; i++) {
         axName = axNames[i];
@@ -154,6 +157,7 @@ module.exports = function supplyLayoutDefaults(layoutIn, layoutOut, fullData) {
 
         var traces = ax2traces[axName] || [];
         axLayoutOut._traceIndices = traces.map(function(t) { return t._expandedIndex; });
+        axLayoutOut._matchingAxes = [];
         axLayoutOut._annIndices = [];
         axLayoutOut._shapeIndices = [];
         axLayoutOut._imgIndices = [];
@@ -199,14 +203,34 @@ module.exports = function supplyLayoutDefaults(layoutIn, layoutOut, fullData) {
             delete axLayoutOut.spikesnap;
         }
 
-        var positioningOptions = {
+        handlePositionDefaults(axLayoutIn, axLayoutOut, coerce, {
             letter: axLetter,
             counterAxes: counterAxes[axLetter],
             overlayableAxes: overlayableAxes,
             grid: layoutOut.grid
-        };
+        });
 
-        handlePositionDefaults(axLayoutIn, axLayoutOut, coerce, positioningOptions);
+        var match = Lib.coerce(axLayoutIn, axLayoutOut, {
+            matches: {
+                valType: 'enumerated',
+                // TODO maybe filter out axes with 'matches'?
+                values: {x: xIds, y: yIds}[axLetter]
+            }
+        }, 'matches');
+
+        if(match) {
+            if(existingMatches[match]) {
+                axisMatchGroups[existingMatches[match] - 1][id] = 1;
+            } else {
+                var group = {};
+                group[id] = 1;
+                group[match] = 1;
+                axisMatchGroups.push(group);
+                existingMatches[match] = axisMatchGroups.length;
+            }
+
+            layoutOut[id2name(match)]._matchingAxes.push(axName);
+        }
 
         axLayoutOut._input = axLayoutIn;
     }
